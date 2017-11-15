@@ -25,6 +25,7 @@ import network.api.EstablisherServiceListener;
 import network.api.Peer;
 import protocol.impl.SigmaEstablisher;
 import protocol.impl.sigma.SigmaContract;
+import protocol.impl.sigma.SHA512;
 
 /**
  * Choose Trent with the other peers for this contract
@@ -47,6 +48,10 @@ public class ProtocolChooseTrent implements ProtocolStep {
 	
 	@XmlElement(name="randomNumber")
 	private BigInteger randomNumber;
+	@XmlElement(name="salt")
+	private bit[] salt;
+	@XmlElement(name="hashNumber")
+	private bit[] hashNumber;
 	@XmlElement(name="finalNumber")
 	private BigInteger finalNumber;
 	
@@ -73,11 +78,15 @@ public class ProtocolChooseTrent implements ProtocolStep {
 	@JsonCreator
 	public ProtocolChooseTrent(@JsonProperty("list") ArrayList<User> list,
 			@JsonProperty("randomNumber") BigInteger randomNumber,
+			@JsonProperty("seed") bit[] salt,
+			@JsonProperty("hashNumber") bit[] hashNumber,
 			@JsonProperty("finalNumber") BigInteger finalNumber,
 			@JsonProperty("hasSent") String[][] hasSent,
 			@JsonProperty("key") ElGamalKey key){
 		this.list = list;
 		this.randomNumber = randomNumber;
+		this.salt = salt;
+		this.hashNumber = hashNumber;
 		this.finalNumber = finalNumber;
 		this.hasSent = hasSent;
 		this.key = key;
@@ -113,6 +122,8 @@ public class ProtocolChooseTrent implements ProtocolStep {
 		
 		// Setup the random number which will be sent
 		this.randomNumber = new BigInteger(100, new SecureRandom());
+		this.salt = SHA512.generateSalt();
+		this.hashNumber = SHA512.calculateHash(this.randomNumber, this.salt);
 		this.finalNumber = this.randomNumber;
 		
 		int i=0;
