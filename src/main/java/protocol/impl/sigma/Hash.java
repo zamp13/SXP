@@ -23,7 +23,7 @@ public static void main(String[] args)
 	}
 } **/
  
- 
+package protocol.impl.sigma;
 import java.io.UnsupportedEncodingException; 
 import java.security.MessageDigest; 
 import java.security.NoSuchAlgorithmException; 
