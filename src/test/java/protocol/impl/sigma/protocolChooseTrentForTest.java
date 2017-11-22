@@ -1,16 +1,14 @@
+package protocol.impl.sigma;
+
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Vector;
 
-import static java.lang.System.exit;
-
-public class protocolChooseTrent {
+public class protocolChooseTrentForTest {
 	
     public static boolean verifySendResultTrent(Vector<UserTest > usersContracts) {
 
-        for(User u1 : usersContracts){
+        for(UserTest u1 : usersContracts){
             if ( ! u1.verifyTrent())
                 return false;
         }
@@ -20,7 +18,7 @@ public class protocolChooseTrent {
     public static boolean verifyAllCalculateResultTrent(Vector<UserTest > usersContracts) {
         boolean flag = true;
 
-        for(User u1 : usersContracts){
+        for(UserTest u1 : usersContracts){
             if( u1.getResultTrent() == -1){
                 flag = false;
             }
