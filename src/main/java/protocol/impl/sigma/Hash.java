@@ -31,7 +31,7 @@ import java.security.SecureRandom;
 public abstract class Hash 
 { 
     private static final String ALGORITHM = "SHA-512"; //Choix de l'algorithme de cryptage
-    private static final int ITERATIONS = 1000000;  //Nombre d'itération pour le calcul du hash
+    private static final int ITERATIONS = 100000;  //Nombre d'itération pour le calcul du hash
     private static final int SALT_SIZE = 64; //Taille du sel
     
 	/**
