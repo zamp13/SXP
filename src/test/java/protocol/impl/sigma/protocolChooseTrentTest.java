@@ -11,16 +11,17 @@ import java.security.SecureRandom;
 public class protocolChooseTrentTest {
 
     
-	private static int numberUser = (int) Math.random()*100;
-    private static int numberTrent =  (int) Math.random()*100;
-    private static int[] userTrents = new int[numberTrent];
-    private static Vector<UserTest> usersContracts = new Vector<UserTest>();
+	private static int numberUser ;
+    private static int numberTrent;
+    private static int[] userTrents;
+    private static Vector<UserTest> usersContracts;
     private static int State;
 
     private static void initialize() throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        numberUser = (int) Math.random()*100;
-        numberTrent =  (int) Math.random()*100;
+        numberUser = 10;
+        numberTrent = 5;
         userTrents = new int[numberTrent];
+        usersContracts = new Vector<UserTest>();
         // Initialise userContracts.
         for (int i = 0; i < numberUser; i++) 
         {
@@ -44,7 +45,7 @@ public class protocolChooseTrentTest {
     @Test
     public void protocolFailBecauseCheaterChangeNumber() throws UnsupportedEncodingException, NoSuchAlgorithmException {
 		initialize();
-        while (State != 5)
+        while (State != 3)
         {
             switch (State)
             {
@@ -57,13 +58,9 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendPublicKey(usersContracts))
-                        State = 1;
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
+                    assertTrue(protocolChooseTrentForTest.verifySendPublicKey(usersContracts));
+                    State = 1;
+
                     break;
                 case 1:// Send Hash of number.
                     for (UserTest u1 : usersContracts)
@@ -76,15 +73,9 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendHash(usersContracts))
-                    {
-                        State = 2;
-                    }
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
+                    assertTrue (protocolChooseTrentForTest.verifySendHash(usersContracts));
+                    State = 2;
+
                     break;
                 case 2:// Send salt and randomNumber.
                     for (UserTest u1 : usersContracts) {
@@ -98,44 +89,13 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendNumberAndSalt(usersContracts))
-                        State = 3;
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
-                    break;
-                case 3:// Calc the number to choice the TTP.
-                    for (UserTest u1 : usersContracts) {
-                        u1.resultTrent(userTrents);
-                    }
-                    if (protocolChooseTrentForTest.verifyAllCalculateResultTrent(usersContracts))
-                        State = 4;
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
-                    break;
-                case 4:// Send the number of TTP.
-                    for (UserTest u1 : usersContracts) {
+                    assertFalse(protocolChooseTrentForTest.verifySendNumberAndSalt(usersContracts));
+                    State = 3;
 
-                        for (UserTest u2 : usersContracts) {
-                            if (u1.getPublicKey() != u2.getPublicKey()) {
-                                u1.receiveResultTrent(u2.getPublicKey(), u2.getResultTrent());
-                            }
-                        }
-                    }
-                    if (protocolChooseTrentForTest.verifySendResultTrent(usersContracts))
-                        State = 5;
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
+                    break;
             }
         }
+        assertTrue(State == 3);
 	}
 
     @Test
@@ -154,13 +114,9 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendPublicKey(usersContracts))
-                        State = 1;
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
+                    assertTrue (protocolChooseTrentForTest.verifySendPublicKey(usersContracts));
+                    State = 1;
+
                     break;
                 case 1:// Send Hash of number.
                     for (UserTest u1 : usersContracts)
@@ -173,15 +129,9 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendHash(usersContracts))
-                    {
-                        State = 2;
-                    }
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
+                    assertTrue(protocolChooseTrentForTest.verifySendHash(usersContracts));
+                    State = 2;
+
                     break;
                 case 2:// Send salt and randomNumber.
                     for (UserTest u1 : usersContracts) {
@@ -192,25 +142,17 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendNumberAndSalt(usersContracts))
-                        State = 3;
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
+                    assertTrue(protocolChooseTrentForTest.verifySendNumberAndSalt(usersContracts));
+                    State = 3;
+
                     break;
                 case 3:// Calc the number to choice the TTP.
                     for (UserTest u1 : usersContracts) {
                         u1.resultTrent(userTrents);
                     }
-                    if (protocolChooseTrentForTest.verifyAllCalculateResultTrent(usersContracts))
-                        State = 4;
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
+                    assertTrue (protocolChooseTrentForTest.verifyAllCalculateResultTrent(usersContracts));
+                    State = 4;
+
                     break;
                 case 4:// Send the number of TTP.
                     for (UserTest u1 : usersContracts) {
@@ -224,19 +166,16 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendResultTrent(usersContracts))
-                        State = 5;
-                    else
-                    {
-                        assertTrue(false);
-                        return;
-                    }
+                    assertFalse(protocolChooseTrentForTest.verifySendResultTrent(usersContracts));
+                    State = 5;
+                    break;
             }
         }
     }
 
 	@Test
     public void protocolSuccess() throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        initialize();
         while (State != 5)
         {
             switch (State)
@@ -250,13 +189,9 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendPublicKey(usersContracts))
-                        State = 1;
-                    else
-					{
-                        assertTrue(false);
-                        return;
-					}
+                    assertTrue (protocolChooseTrentForTest.verifySendPublicKey(usersContracts));
+                    State = 1;
+
 				break;
                 case 1:// Send Hash of number.
                     for (UserTest u1 : usersContracts)
@@ -269,15 +204,8 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendHash(usersContracts))
-                    {
+                    assertTrue(protocolChooseTrentForTest.verifySendHash(usersContracts));
                         State = 2;
-                    }
-                    else
-					{
-                        assertTrue(false);
-                        return;
-					}
 				break;
                 case 2:// Send salt and randomNumber.
                     for (UserTest u1 : usersContracts) {
@@ -288,25 +216,16 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendNumberAndSalt(usersContracts))
+                    assertTrue(protocolChooseTrentForTest.verifySendNumberAndSalt(usersContracts));
                         State = 3;
-                    else
-					{
-                        assertTrue(false);
-                        return;
-					}
+
 				break;
                 case 3:// Calc the number to choice the TTP.
                     for (UserTest u1 : usersContracts) {
                         u1.resultTrent(userTrents);
                     }
-                    if (protocolChooseTrentForTest.verifyAllCalculateResultTrent(usersContracts))
+                    assertTrue(protocolChooseTrentForTest.verifyAllCalculateResultTrent(usersContracts));
                         State = 4;
-                    else
-					{
-                        assertTrue(false);
-                        return;
-					}
 				break;
                 case 4:// Send the number of TTP.
                     for (UserTest u1 : usersContracts) {
@@ -317,13 +236,8 @@ public class protocolChooseTrentTest {
                             }
                         }
                     }
-                    if (protocolChooseTrentForTest.verifySendResultTrent(usersContracts))
-                        State = 5;
-                    else
-					{
-                        assertTrue(false);
-                        return;
-					}
+                    assertTrue (protocolChooseTrentForTest.verifySendResultTrent(usersContracts));
+                    State = 5;
             }
         }
 		assertTrue(State == 5);

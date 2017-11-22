@@ -30,8 +30,6 @@ public class protocolChooseTrentForTest {
 
         for (UserTest u : usersContracts) {
             if (! u.verifyHashSaltAndNumber()) {
-                System.out.println(! u.verifyHashSaltAndNumber());
-                System.out.println( u.getHashNumber() );
                 return false;
             }
         }
