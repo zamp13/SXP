@@ -194,6 +194,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 		final String senPubK = key.getPublicKey().toString();
 		final int N = contract.getParties().size();
 		
+		System.out.print("test!"); 
 		es.removeListener(TITLE+contractId+senPubK);
 		es.setListener("title", TITLE+contractId, TITLE+contractId+senPubK, new EstablisherServiceListener() {
 			@Override
