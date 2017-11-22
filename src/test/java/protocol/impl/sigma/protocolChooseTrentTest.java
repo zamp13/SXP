@@ -136,7 +136,6 @@ public class protocolChooseTrentTest {
                     }
             }
         }
-		assertTrue(State == 5);
 	}
 
     @Test
@@ -234,7 +233,6 @@ public class protocolChooseTrentTest {
                     }
             }
         }
-        assertTrue(State == 5);
     }
 
 	@Test
