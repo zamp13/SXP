@@ -1,13 +1,10 @@
 package protocol.impl.sigma.steps;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.ListIterator;
+import java.util.*;
 
 import javax.xml.bind.annotation.XmlElement;
 
@@ -26,7 +23,7 @@ import network.api.Peer;
 import protocol.impl.SigmaEstablisher;
 import protocol.impl.sigma.Hash;
 import protocol.impl.sigma.SigmaContract;
-
+import protocol.impl.sigma.infoChooseTrent;
 
 
 /**
@@ -58,7 +55,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 	private BigInteger finalNumber;
 
 	@XmlElement(name="hasSent")
-	private String[][] hasSent = new String[3][];
+	private String[][] hasSent = new String[4][];
 
 	@XmlElement(name="key")
 	private ElGamalKey key;
@@ -70,6 +67,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 	private EstablisherService es;
 	private SigmaContract contract;
 	private int senderKeyId;
+	private ArrayList<infoChooseTrent> tabInfo; // Can stock variable to exchange .
 
 	final private JsonTools<Collection<User>> json = new JsonTools<>(new TypeReference<Collection<User>>(){});
 	final private JsonTools<String[]> jsonMessage = new JsonTools<>(new TypeReference<String[]>(){});
@@ -112,6 +110,8 @@ public class ProtocolChooseTrent implements ProtocolStep {
 		this.uris = sigmaE.sigmaEstablisherData.getUris();
 		this.es = sigmaE.establisherService;
 		this.contract = sigmaE.sigmaEstablisherData.getContract();
+		this.tabInfo = new ArrayList<>();
+
 
 		// Setup list of users (remove the signers)
 		this.list = new ArrayList<User>(json.toEntity((new Users()).get()));
@@ -120,6 +120,11 @@ public class ProtocolChooseTrent implements ProtocolStep {
 			while(it.hasNext())
 				if (k.getPublicKey().equals(it.next().getKey().getPublicKey()))
 					it.remove();
+		}
+
+		// Setup list of users sign
+		for(ElGamalKey k : contract.getParties()){
+			this.tabInfo.add(new infoChooseTrent(k.getPublicKey().toString()));
 		}
 
 		// Setup the random number which will be sent
@@ -132,7 +137,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 			System.out.println("Error hashNumber!");
 		}
 
-		this.finalNumber = new BigInteger("-1");
+		this.finalNumber = this.randomNumber;
 
 		int i=0;
 		String senPubK = key.getPublicKey().toString();
@@ -210,6 +215,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 				int j = 0;
 				while (!(contract.getParties().get(j).getPublicKey().toString().equals(senderId))){j++;}
 				// If we received a new list
+				// Echange liste TTP jusqu'a avoir tous la même
 				if (content[0].equals("0") && Arrays.asList(hasSent[0]).indexOf(null) != (-1)){
 					Collection<User> list2 = json.toEntity(content[1]);
 					ListIterator<User> it = list.listIterator();
@@ -231,24 +237,54 @@ public class ProtocolChooseTrent implements ProtocolStep {
 							public int compare(User u1, User u2){
 								return u1.getKey().getPublicKey().compareTo(u2.getKey().getPublicKey());
 							}
-						});
+						});// Send hashNumber
 						String[] toBeSent = new String[2];
 						toBeSent[0] = "1";
-						toBeSent[1] = randomNumber.toString();
+						toBeSent[1] = hashNumber.toString();
 						hasSent[1][senderKeyId] = "";
 						es.sendContract(TITLE+contractId, jsonMessage.toJson(toBeSent), senPubK, peer, uris);
 					}
 				}
-				// If we receive the others random number
-				else if (content[0].equals("1") && Arrays.asList(hasSent[1]).indexOf(null) != (-1)){
-					// Wait for everyone to have sent their number and setup Trent
+				else if (content[0].equals("1") && Arrays.asList(hasSent[1]).indexOf(null) != (-1)) {
+					// Wait for everyone to have sent their hashNumber
 					if (hasSent[1][j] == null){
-						finalNumber = finalNumber.add(new BigInteger(content[1]));
+						tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[1].getBytes());
 						hasSent[1][j] = "";
 					}
 
-					if (Arrays.asList(hasSent[1]).indexOf(null) == N){
-						hasSent[1][N] = "";
+					if (Arrays.asList(hasSent[1]).indexOf(null) == N) {
+						hasSent[2][N] = "";
+
+						String[] toBeSent = new String[2];
+						toBeSent[0] = "1";
+						toBeSent[1] = randomNumber.toString();
+						toBeSent[2] = salt.toString();
+						hasSent[1][senderKeyId] = "";
+						es.sendContract(TITLE + contractId, jsonMessage.toJson(toBeSent), senPubK, peer, uris);
+					}
+				}
+					// If we receive the others random number
+				else if (content[0].equals("2") && Arrays.asList(hasSent[2]).indexOf(null) != (-1)){
+					// Wait for everyone to have sent their number and setup Trent
+					if (hasSent[2][j] == null){
+						tabInfo.get(tabInfo.indexOf(senPubK)).setRandomNumber(new BigInteger(content[1]));
+						tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[2].getBytes());
+
+						try {
+							if (!Hash.verifyPassword(tabInfo.get(tabInfo.indexOf(senPubK)).getHashNumber(), content[1].getBytes(),content[2].getBytes()))
+    							stop();
+							else
+								finalNumber = finalNumber.add(tabInfo.get(tabInfo.indexOf(senPubK)).getRandomNumber()).mod(new BigInteger(String.valueOf(list.size()))); // Sum of modulo.
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
+						hasSent[2][j] = "";
+					}
+
+					if (Arrays.asList(hasSent[2]).indexOf(null) == N){
+						hasSent[2][N] = "";
 						int N2 = (int) list.size();
 						if (N2 == 0){
 							System.out.println("Can't go on - there is no third party available");
@@ -262,7 +298,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 							toBeSent[0] = "2";
 							toBeSent[1] = trentUser.getKey().getPublicKey().toString();
 							es.sendContract(TITLE+contractId, jsonMessage.toJson(toBeSent), senPubK, peer, uris);
-							hasSent[2][senderKeyId] = "";
+							hasSent[3][senderKeyId] = "";
 
 							if (sigmaE.sigmaEstablisherData.getTrentKey() !=null &&
 									!sigmaE.sigmaEstablisherData.getTrentKey().getPublicKey().equals(trentUser.getKey().getPublicKey())){
@@ -275,17 +311,17 @@ public class ProtocolChooseTrent implements ProtocolStep {
 					}
 				}
 				// Check that we have the same Trent
-				else if (content[0].equals("2") && Arrays.asList(hasSent[2]).indexOf(null) != (-1)){
+				else if (content[0].equals("3") && Arrays.asList(hasSent[3]).indexOf(null) != (-1)){
 					ElGamalKey key = sigmaE.sigmaEstablisherData.getTrentKey();
 					if (key==null){
 						ElGamalKey trentK = ElGamalAsymKeyFactory.create(false);
 						trentK.setPublicKey(new BigInteger(content[1]));
 						sigmaE.setTrent(trentK);
-						hasSent[2][j] = "";
+						hasSent[3][j] = "";
 					}else if(content[1].equals(key.getPublicKey().toString())){
-						hasSent[2][j] = "";
+						hasSent[3][j] = "";
 						if (Arrays.asList(hasSent[2]).indexOf(null) == (N)){
-							hasSent[2][N] = "";
+							hasSent[3][N] = "";
 							nextStep();
 						}
 					}else {
