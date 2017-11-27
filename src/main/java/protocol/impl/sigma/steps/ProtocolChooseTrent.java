@@ -230,6 +230,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 					}
 					hasSent[0][j] = "";
 
+					// Send all users the hash
 					if (Arrays.asList(hasSent[0]).indexOf(null) == N){
 						hasSent[0][N] = "";
 						list.sort(new Comparator<User>(){
@@ -252,6 +253,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 						hasSent[1][j] = "";
 					}
 
+					// Send all users the randm number ans the salt
 					if (Arrays.asList(hasSent[1]).indexOf(null) == N) {
 						hasSent[2][N] = "";
 
@@ -270,6 +272,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 						tabInfo.get(tabInfo.indexOf(senPubK)).setRandomNumber(new BigInteger(content[1]));
 						tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[2].getBytes());
 
+						// Verify for all user if the hash, salt and number as good
 						try {
 							if (!Hash.verifyPassword(tabInfo.get(tabInfo.indexOf(senPubK)).getHashNumber(), content[1].getBytes(),content[2].getBytes()))
     							stop();
@@ -283,6 +286,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 						hasSent[2][j] = "";
 					}
 
+					// Send the final number calculated at all users
 					if (Arrays.asList(hasSent[2]).indexOf(null) == N){
 						hasSent[2][N] = "";
 						int N2 = (int) list.size();
