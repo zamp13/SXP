@@ -2,14 +2,17 @@ package protocol.impl.sigma;
 
 import java.math.BigInteger;
 
-public class infoChooseTrent {
+/**
+ * Class InfoChooseTrent: Permet de stocker les données d'un utilisateur lors du protocles de choix du TTP
+ */
+public class InfoChooseTrent {
     private String publicKey;
     private byte[] hashNumber;
     private byte[] salt;
     private BigInteger randomNumber;
 
 
-    public infoChooseTrent(String publicKey){
+    public InfoChooseTrent(String publicKey){
         this.publicKey = publicKey;
     }
 
