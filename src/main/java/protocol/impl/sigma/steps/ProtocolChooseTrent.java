@@ -213,7 +213,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 		es.removeListener(TITLE+contractId+senPubK);
 		es.setListener("title", TITLE+contractId, TITLE+contractId+senPubK, new EstablisherServiceListener() {
 			@Override
-			public void notify(String title, String msg, String senderId) {
+			public void notify(String title, String msg, String senderId) throws UnsupportedEncodingException {
 				String[] content = jsonMessage.toEntity(msg);
 				int j = 0;
 				while (!(contract.getParties().get(j).getPublicKey().toString().equals(senderId))){j++;}
@@ -252,7 +252,11 @@ public class ProtocolChooseTrent implements ProtocolStep {
 				else if (content[0].equals("1") && Arrays.asList(hasSent[1]).indexOf(null) != (-1)) {
 					// Wait for everyone to have sent their hashNumber
 					if (hasSent[1][j] == null){
-						tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[1].getBytes());
+						try {
+							tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[1].getBytes("UTF-8")); //erreur.
+						} catch (UnsupportedEncodingException e) {
+							e.printStackTrace();
+						}
 						hasSent[1][j] = "";
 					}
 
@@ -273,7 +277,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 					// Wait for everyone to have sent their number and setup Trent
 					if (hasSent[2][j] == null){
 						tabInfo.get(tabInfo.indexOf(senPubK)).setRandomNumber(new BigInteger(content[1]));
-						tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[2].getBytes());
+						tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[2].getBytes("UTF-8"));
 
 						// Verify for all user if the hash, salt and number as good
 						try {
