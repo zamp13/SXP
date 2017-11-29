@@ -3,7 +3,9 @@ package protocol.impl.sigma;
 import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
+import java.security.NoSuchAlgorithmException; 
+import java.io.UnsupportedEncodingException; 
+import java.security.SecureRandom; 
 
 public class HashTest {
 
@@ -25,9 +27,10 @@ public class HashTest {
 			hash1 = Hash.calculateHash(password1.getBytes("UTF-8"), salt1);
 			hash2 = Hash.calculateHash(password2.getBytes("UTF-8"), salt2);
 			hash2bis = Hash.calculateHash(password2bis.getBytes("UTF-8"), salt2bis);
-		}catch(Exception e)
-		{
-			fail("Exception");
+		}
+		catch (NoSuchAlgorithmException | UnsupportedEncodingException ex)
+		{ 
+			fail(ex.getMessage()); 
 		}
     }
 
@@ -46,9 +49,9 @@ public class HashTest {
 			assertFalse( Hash.verifyPassword(hash2, password1.getBytes("UTF-8"), salt2bis) );
 			assertFalse( Hash.verifyPassword(hash2bis, password1.getBytes("UTF-8"), salt2bis) );
 		}
-		catch (Exception e)
-		{
-			fail("Exception");
+		catch (NoSuchAlgorithmException | UnsupportedEncodingException ex)
+		{ 
+			fail(ex.getMessage()); 
 		}
 	}
 	@Test
@@ -66,9 +69,9 @@ public class HashTest {
 			assertFalse( Hash.verifyPassword(hash2, password2.getBytes("UTF-8"), salt2bis) );
 			assertTrue( Hash.verifyPassword(hash2bis, password2.getBytes("UTF-8"), salt2bis) );
 		}
-		catch (Exception e)
-		{
-			fail("Exception");
+		catch (NoSuchAlgorithmException | UnsupportedEncodingException ex)
+		{ 
+			fail(ex.getMessage()); 
 		}
 	}
 	@Test
@@ -87,9 +90,9 @@ public class HashTest {
 			assertFalse( Hash.verifyPassword(hash2, password2bis.getBytes("UTF-8"), salt2bis) );
 			assertTrue( Hash.verifyPassword(hash2bis, password2bis.getBytes("UTF-8"), salt2bis) );
 		}
-		catch (Exception e)
-		{
-			fail("Exception");
+		catch (NoSuchAlgorithmException | UnsupportedEncodingException ex)
+		{ 
+			fail(ex.getMessage()); 
 		}
 	}
 }
