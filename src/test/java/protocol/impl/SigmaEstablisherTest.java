@@ -190,7 +190,7 @@ public class SigmaEstablisherTest {
 		
 		// Time to realize procedure
 		try{
-			Thread.sleep(1000);
+			Thread.sleep(10000);
 		}catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -222,7 +222,7 @@ public class SigmaEstablisherTest {
 		
 		// Time to realize procedure
 		try{
-			Thread.sleep(3000);
+			Thread.sleep(10000);
 		}catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -278,7 +278,7 @@ public class SigmaEstablisherTest {
 		
 		// Time to realize procedure
 		try{
-			Thread.sleep(1000);
+			Thread.sleep(10000);
 		}catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -317,7 +317,7 @@ public class SigmaEstablisherTest {
 		
 		// Time to realize procedure
 		try{
-			Thread.sleep(2000);
+			Thread.sleep(10000);
 		}catch (InterruptedException e) {
 			e.printStackTrace();
 		}

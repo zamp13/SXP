@@ -47,10 +47,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 
 	@XmlElement(name="randomNumber")
 	private BigInteger randomNumber;
-	@XmlElement(name="salt")
-	private byte[] salt;
-	@XmlElement(name="hashNumber")
-	private byte[] hashNumber;
+	
 	@XmlElement(name="finalNumber")
 	private BigInteger finalNumber;
 
@@ -60,7 +57,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 	@XmlElement(name="key")
 	private ElGamalKey key;
 
-
+	
 	private SigmaEstablisher sigmaE;
 	private Peer peer;
 	private HashMap<ElGamalKey,String> uris;
@@ -68,6 +65,8 @@ public class ProtocolChooseTrent implements ProtocolStep {
 	private SigmaContract contract;
 	private int senderKeyId;
 	private ArrayList<InfoChooseTrent> tabInfo; // Can stock variable to exchange .
+	private byte[]  salt;
+	private byte[]  hashNumber;
 
 	final private JsonTools<Collection<User>> json = new JsonTools<>(new TypeReference<Collection<User>>(){});
 	final private JsonTools<String[]> jsonMessage = new JsonTools<>(new TypeReference<String[]>(){});
@@ -78,15 +77,11 @@ public class ProtocolChooseTrent implements ProtocolStep {
 	@JsonCreator
 	public ProtocolChooseTrent(@JsonProperty("list") ArrayList<User> list,
 							   @JsonProperty("randomNumber") BigInteger randomNumber,
-							   @JsonProperty("seed") byte[] salt,
-							   @JsonProperty("hashNumber") byte[] hashNumber,
 							   @JsonProperty("finalNumber") BigInteger finalNumber,
 							   @JsonProperty("hasSent") String[][] hasSent,
 							   @JsonProperty("key") ElGamalKey key){
 		this.list = list;
 		this.randomNumber = randomNumber;
-		this.salt = salt;
-		this.hashNumber = hashNumber;
 		this.finalNumber = finalNumber;
 		this.hasSent = hasSent;
 		this.key = key;
@@ -213,7 +208,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 		es.removeListener(TITLE+contractId+senPubK);
 		es.setListener("title", TITLE+contractId, TITLE+contractId+senPubK, new EstablisherServiceListener() {
 			@Override
-			public void notify(String title, String msg, String senderId) throws UnsupportedEncodingException {
+			public void notify(String title, String msg, String senderId){
 				String[] content = jsonMessage.toEntity(msg);
 				int j = 0;
 				while (!(contract.getParties().get(j).getPublicKey().toString().equals(senderId))){j++;}
@@ -252,23 +247,27 @@ public class ProtocolChooseTrent implements ProtocolStep {
 				else if (content[0].equals("1") && Arrays.asList(hasSent[1]).indexOf(null) != (-1)) {
 					// Wait for everyone to have sent their hashNumber
 					if (hasSent[1][j] == null){
-						try {
-							tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[1].getBytes("UTF-8")); //erreur.
-						} catch (UnsupportedEncodingException e) {
-							e.printStackTrace();
+						for (InfoChooseTrent u : tabInfo){
+							if (u.getPublicKey().equals(senPubK)){
+								try {
+									u.setHashNumber(content[1].getBytes("UTF-8")); //erreur.
+								} catch (UnsupportedEncodingException e) {
+									e.printStackTrace();
+								}
+							}
 						}
 						hasSent[1][j] = "";
 					}
 
 					// Send all users the randm number ans the salt
 					if (Arrays.asList(hasSent[1]).indexOf(null) == N) {
-						hasSent[2][N] = "";
+						hasSent[1][N] = "";
 
-						String[] toBeSent = new String[2];
-						toBeSent[0] = "1";
+						String[] toBeSent = new String[3];
+						toBeSent[0] = "2";
 						toBeSent[1] = randomNumber.toString();
 						toBeSent[2] = salt.toString();
-						hasSent[1][senderKeyId] = "";
+						hasSent[2][senderKeyId] = "";
 						es.sendContract(TITLE + contractId, jsonMessage.toJson(toBeSent), senPubK, peer, uris);
 					}
 				}
@@ -276,20 +275,22 @@ public class ProtocolChooseTrent implements ProtocolStep {
 				else if (content[0].equals("2") && Arrays.asList(hasSent[2]).indexOf(null) != (-1)){
 					// Wait for everyone to have sent their number and setup Trent
 					if (hasSent[2][j] == null){
-						tabInfo.get(tabInfo.indexOf(senPubK)).setRandomNumber(new BigInteger(content[1]));
-						tabInfo.get(tabInfo.indexOf(senPubK)).setHashNumber(content[2].getBytes("UTF-8"));
-
-						// Verify for all user if the hash, salt and number as good
-						try {
-							if (! Hash.verifyPassword(tabInfo.get(tabInfo.indexOf(senPubK)).getHashNumber(), tabInfo.get(tabInfo.indexOf(senPubK)).getRandomNumber().toByteArray(),tabInfo.get(tabInfo.indexOf(senPubK)).getSalt()))
-    							stop();
-							else
-								finalNumber = finalNumber.add(tabInfo.get(tabInfo.indexOf(senPubK)).getRandomNumber()).mod(new BigInteger(String.valueOf(list.size()))); // Sum of modulo.
-						} catch (NoSuchAlgorithmException e) {
-							e.printStackTrace();
-						} catch (UnsupportedEncodingException e) {
-							e.printStackTrace();
+						
+						for (InfoChooseTrent u : tabInfo){
+							if ( u.getPublicKey().equals(senPubK)){
+								try{
+									u.setRandomNumber(new BigInteger(content[1]));
+									u.setSalt(content[2].getBytes("UTF-8"));
+									if (Hash.verifyPassword(u.getHashNumber(), u.getRandomNumber().toByteArray(),u.getSalt()))
+										finalNumber = finalNumber.add(u.getRandomNumber().mod(new BigInteger(String.valueOf(N)))); // Sum of modulo.
+								} catch (UnsupportedEncodingException e) {
+									e.printStackTrace();
+								} catch (NoSuchAlgorithmException e) {
+									e.printStackTrace();
+								}
+							}
 						}
+						// Verify for all user if the hash, salt and number as good
 						hasSent[2][j] = "";
 					}
 
@@ -306,7 +307,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 							}
 
 							String[] toBeSent = new String[2];
-							toBeSent[0] = "2";
+							toBeSent[0] = "3";
 							toBeSent[1] = trentUser.getKey().getPublicKey().toString();
 							es.sendContract(TITLE+contractId, jsonMessage.toJson(toBeSent), senPubK, peer, uris);
 							hasSent[3][senderKeyId] = "";
@@ -331,7 +332,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 						hasSent[3][j] = "";
 					}else if(content[1].equals(key.getPublicKey().toString())){
 						hasSent[3][j] = "";
-						if (Arrays.asList(hasSent[2]).indexOf(null) == (N)){
+						if (Arrays.asList(hasSent[3]).indexOf(null) == (N)){
 							hasSent[3][N] = "";
 							nextStep();
 						}
