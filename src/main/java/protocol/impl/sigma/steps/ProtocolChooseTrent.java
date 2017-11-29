@@ -23,7 +23,7 @@ import network.api.Peer;
 import protocol.impl.SigmaEstablisher;
 import protocol.impl.sigma.Hash;
 import protocol.impl.sigma.SigmaContract;
-import protocol.impl.sigma.infoChooseTrent;
+import protocol.impl.sigma.InfoChooseTrent;
 
 
 /**
@@ -67,7 +67,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 	private EstablisherService es;
 	private SigmaContract contract;
 	private int senderKeyId;
-	private ArrayList<infoChooseTrent> tabInfo; // Can stock variable to exchange .
+	private ArrayList<InfoChooseTrent> tabInfo; // Can stock variable to exchange .
 
 	final private JsonTools<Collection<User>> json = new JsonTools<>(new TypeReference<Collection<User>>(){});
 	final private JsonTools<String[]> jsonMessage = new JsonTools<>(new TypeReference<String[]>(){});
@@ -124,7 +124,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 
 		// Setup list of users sign
 		for(ElGamalKey k : contract.getParties()){
-			this.tabInfo.add(new infoChooseTrent(k.getPublicKey().toString()));
+			this.tabInfo.add(new InfoChooseTrent(k.getPublicKey().toString()));
 		}
 
 		// Setup the random number which will be sent
@@ -175,15 +175,18 @@ public class ProtocolChooseTrent implements ProtocolStep {
 			/*
 			 * The round here is
 			 * 		+ 0 if the list hasn't been setup with other peers
-			 * 		+ 1 if the random numbers aren't all recovered
-			 * 		+ 2 if Trent is already chosen
+			 * 		+ 1 if the hash of numbers aren't all recovered
+			 * 		+ 2 if the random numbers aren't all recovered
+			 * 		+ 3 if Trent is already chosen
 			 */
 	public int getRound() {
 		if (Arrays.asList(hasSent[0]).indexOf(null) != (-1))
 			return 0;
 		else if (Arrays.asList(hasSent[1]).indexOf(null) != (-1))
 			return 1;
-		return 2;
+		else if (Arrays.asList(hasSent[2]).indexOf(null) != (-1))
+			return 2;
+		return 3;
 	}
 
 
@@ -274,7 +277,7 @@ public class ProtocolChooseTrent implements ProtocolStep {
 
 						// Verify for all user if the hash, salt and number as good
 						try {
-							if (!Hash.verifyPassword(tabInfo.get(tabInfo.indexOf(senPubK)).getHashNumber(), content[1].getBytes(),content[2].getBytes()))
+							if (! Hash.verifyPassword(tabInfo.get(tabInfo.indexOf(senPubK)).getHashNumber(), tabInfo.get(tabInfo.indexOf(senPubK)).getRandomNumber().toByteArray(),tabInfo.get(tabInfo.indexOf(senPubK)).getSalt()))
     							stop();
 							else
 								finalNumber = finalNumber.add(tabInfo.get(tabInfo.indexOf(senPubK)).getRandomNumber()).mod(new BigInteger(String.valueOf(list.size()))); // Sum of modulo.
