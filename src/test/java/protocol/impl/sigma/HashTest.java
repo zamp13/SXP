@@ -7,6 +7,8 @@ import java.security.NoSuchAlgorithmException;
 import java.io.UnsupportedEncodingException; 
 import java.security.SecureRandom; 
 
+
+/** Class that performs unit testing on the Hash class **/
 public class HashTest {
 
     public static String password1, password2, password2bis;
@@ -38,6 +40,8 @@ public class HashTest {
 		}
     }
 
+	/** 
+	 * Function which tests the password1 **/
     @Test
     public void testPassword1(){
         // password1
@@ -69,6 +73,8 @@ public class HashTest {
 		}
 	}
 	@Test
+	/** 
+	 * Function which tests the password2 **/
 	public void testPassword2(){
         // password2
         try
@@ -98,6 +104,8 @@ public class HashTest {
 		}
 	}
 	@Test
+	/** 
+	 * Function which tests the password2bis **/
 	public void testPassword2bis(){
         // password2bis
         try
